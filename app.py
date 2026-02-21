@@ -4,11 +4,15 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Railway分配的端口
+PORT = int(os.environ.get("PORT", 5000))
 
 # 股票列表 (只用A股)
 A_STOCKS = [
@@ -28,34 +32,23 @@ HK_STOCKS = [
     {'symbol': '03690', 'name': '美团'}
 ]
 
-US_STOCKS = [
-    {'symbol': 'AAPL', 'name': '苹果'},
-    {'symbol': 'MSFT', 'name': '微软'},
-    {'symbol': 'NVDA', 'name': '英伟达'}
-]
-
 
 def get_stock(symbol):
     """获取股票数据"""
     try:
-        # 判断市场
         if symbol.isdigit():
-            # 纯数字: A股或港股
             if len(symbol) == 5 and int(symbol) < 90000:
-                # 港股 00700
                 secid = f"116.{symbol}"
             else:
-                # A股
                 if symbol.startswith('6'):
                     secid = f"1.{symbol}"
                 else:
                     secid = f"0.{symbol}"
         else:
-            # 美股等
             secid = f"1.{symbol}"
         
         url = f'https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f44,f45,f46,f47,f48,f58'
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
@@ -63,7 +56,6 @@ def get_stock(symbol):
                 stock = data['data']
                 name = stock.get('f58', symbol)
                 
-                # 港股价格除以1000，A股除以100
                 is_hk = secid.startswith('116.')
                 divisor = 1000 if is_hk else 100
                 
@@ -105,7 +97,7 @@ def get_index():
     for secid, code, name in indices_data:
         try:
             url = f'https://push2.eastmoney.com/api/qt/stock/get?secid={secid}&fields=f43,f44,f45,f46,f47,f48,f58'
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -115,7 +107,7 @@ def get_index():
                     close_price = (stock.get('f44', 0) or 0) / 100
                     
                     change = current_price - close_price
-                    change_pct = (change / close_price * 100) if close_price else 0
+                    change_pct =(change / close_price * 100) if close_price else 0
                     
                     result.append({
                         'symbol': code,
@@ -144,8 +136,7 @@ def index():
     return render_template('index.html',
                          indices=indices,
                          a_stocks=A_STOCKS,
-                         hk_stocks=HK_STOCKS,
-                         us_stocks=US_STOCKS)
+                         hk_stocks=HK_STOCKS)
 
 
 @app.route('/quote/<symbol>')
@@ -158,5 +149,11 @@ def quote(symbol):
     return render_template('quote.html', stock=stock_data)
 
 
+@app.route('/health')
+def health():
+    """健康检查"""
+    return {'status': 'ok'}
+
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=PORT)
