@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票数据中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    <span class="text-xl font-bold">股票数据中心</span>
+                </div>
+                <form action="/quote" method="get" class="flex-1 max-w-md mx-4">
+                    <input type="text" name="symbol" placeholder="输入股票代码" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-sm">
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">大盘指数</h2>
+            <div class="grid grid-cols-2 gap-4">
+                {% for index in indices %}
+                <a href="/quote/{{ index.symbol }}" class="card rounded-xl p-4">
+                    <div class="text-sm text-gray-400">{{ index.name }}</div>
+                    <div class="font-mono text-xl font-bold">{{ index.price }}</div>
+                    <div class="font-mono text-sm {% if index.change >= 0 %}text-green-500{% else %}text-red-500{% endif %}">
+                        {% if index.change >= 0 %}+{% endif %}{{ index.change }} ({{ index.change_pct }}%)
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">A股</h2>
+            <div class="grid grid-cols-3 md:grid-cols-7 gap-3">
+                {% for stock in a_stocks %}
+                <a href="/quote/{{ stock.symbol }}" class="bg-gray-800 rounded-lg p-3 text-center">
+                    <div class="font-bold text-green-400">{{ stock.symbol }}</div>
+                    <div class="text-xs text-gray-400">{{ stock.name }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">港股</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {% for stock in hk_stocks %}
+                <a href="/quote/{{ stock.symbol }}" class="bg-gray-800 rounded-lg p-3 text-center">
+                    <div class="font-bold text-green-400">{{ stock.symbol }}</div>
+                    <div class="text-xs text-gray-400">{{ stock.name }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-lg font-semibold mb-4">美股</h2>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+                {% for stock in us_stocks %}
+                <a href="/quote/{{ stock.symbol }}" class="bg-gray-800 rounded-lg p-3 text-center">
+                    <div class="font-bold text-green-400">{{ stock.symbol }}</div>
+                    <div class="text-xs text-gray-400">{{ stock.name }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 mt-12 py-6 text-center text-gray-400 text-sm">
+        数据来源: 腾讯财经
+    </footer>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# StockPulse Lite - 依赖文件
+# 用于 Render 部署
+
+flask>=2.3.0
+yfinance>=0.2.28
+feedparser>=6.0.10
+gunicorn>=21.0.0
